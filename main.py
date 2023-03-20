@@ -40,6 +40,10 @@ def process_queries(queries):
                     response = contact.name
                     break
             result.append(response)
+#    print()
+#    for contact in contacts:
+#        print(contact.number, contact.name)
+#    print()
     return result
 
 if __name__ == '__main__':
