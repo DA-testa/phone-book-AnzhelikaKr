@@ -1,5 +1,5 @@
 # python3
-
+import random
 class Query:
     def __init__(self, query):
         self.type = query[0]
@@ -7,45 +7,79 @@ class Query:
         if self.type == 'add':
             self.name = query[2]
 
-def read_queries():
-    n = int(input())
+class Hashing:
+    multiplier=random.randint(100,200)
+    prime=1000003
+    def __init__(self, n):
+        self.bucket_count=n
+        self.buckets=[]
+        for i in range(n):
+            self.buckets.append([])
+
+    def h_func(self, string):
+        result = 0
+        for ch in reversed(string):
+            result = (result * self.multiplier + ord(ch)) % self.prime
+        return result % self.bucket_count
+
+    def add(self, query):
+        hashed = self.h_func(str(query.number))
+        bucket = self.buckets[hashed]
+        for c in bucket:
+            if c.number == query.number:
+                c.name = query.name
+                return
+        bucket.append(query)
+
+    def delete(self, query):
+        hashed = self.h_func(str(query.number))
+        bucket = self.buckets[hashed]
+        for i in range(len(bucket)):
+            if bucket[i].number == query.number:
+                bucket.pop(i)
+                return
+    
+    def find(self, query):
+        hashed = self.h_func(str(query.number))
+        bucket = self.buckets[hashed]
+        for c in bucket:
+            if c.number == query.number:
+                return c.name
+        return 'not found'
+            
+
+
+
+def read_queries(n):
     return [Query(input().split()) for i in range(n)]
 
 def write_responses(result):
     print('\n'.join(result))
 
 def process_queries(queries):
+    n=len(queries)
+    contacts = Hashing(n)
+
     result = []
-    # Keep list of all existing (i.e. not deleted yet) contacts.
-    contacts = []
+
     for cur_query in queries:
         if cur_query.type == 'add':
-            # if we already have contact with such number,
-            # we should rewrite contact's name
-            for contact in contacts:
-                if contact.number == cur_query.number:
-                    contact.name = cur_query.name
-                    break
-            else: # otherwise, just add it
-                contacts.append(cur_query)
+            contacts.add(cur_query)
         elif cur_query.type == 'del':
-            for j in range(len(contacts)):
-                if contacts[j].number == cur_query.number:
-                    contacts.pop(j)
-                    break
+            contacts.delete(cur_query)
         else:
-            response = 'not found'
-            for contact in contacts:
-                if contact.number == cur_query.number:
-                    response = contact.name
-                    break
+            response = contacts.find(cur_query)
             result.append(response)
+
 #    print()
-#    for contact in contacts:
-#        print(contact.number, contact.name)
+#    for bucket in contacts.buckets:
+#        for c in bucket:
+#            print(c.number, c.name, end="; ")
+#        print()
 #    print()
     return result
 
 if __name__ == '__main__':
-    write_responses(process_queries(read_queries()))
+    n=int(input())
+    write_responses(process_queries(read_queries(n)))
 
